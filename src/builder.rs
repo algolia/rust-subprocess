@@ -114,7 +114,6 @@ mod exec {
     ///
     /// [`Popen`]: struct.Popen.html
     /// [`Popen::create`]: struct.Popen.html#method.create
-
     #[derive(Debug)]
     pub struct Exec {
         command: OsString,
@@ -260,9 +259,9 @@ mod exec {
         pub fn stdin<T: Into<InputRedirection>>(mut self, stdin: T) -> Exec {
             match (&self.config.stdin, stdin.into()) {
                 (&Redirection::None, InputRedirection::AsRedirection(new))
-                    => self.config.stdin = new,
+                => self.config.stdin = new,
                 (&Redirection::Pipe,
-                 InputRedirection::AsRedirection(Redirection::Pipe)) => (),
+                    InputRedirection::AsRedirection(Redirection::Pipe)) => (),
                 (&Redirection::None, InputRedirection::FeedData(data)) => {
                     self.config.stdin = Redirection::Pipe;
                     self.stdin_data = Some(data);
@@ -400,7 +399,7 @@ mod exec {
         pub fn capture(mut self) -> PopenResult<Capture> {
             let stdin_data = self.stdin_data.take();
             if let (&Redirection::None, &Redirection::None)
-                = (&self.config.stdout, &self.config.stderr) {
+            = (&self.config.stdout, &self.config.stderr) {
                 self = self.stdout(Redirection::Pipe);
             }
             let mut p = self.popen()?;
@@ -410,7 +409,9 @@ mod exec {
             let err = maybe_err.unwrap_or_else(Vec::new);
             let status = p.wait()?;
             Ok(Capture {
-                stdout: out, stderr: err, exit_status: status
+                stdout: out,
+                stderr: err,
+                exit_status: status,
             })
         }
     }
@@ -505,6 +506,11 @@ mod exec {
         /// from bytes using `String::from_utf8_lossy`.
         pub fn stderr_str(&self) -> String {
             String::from_utf8_lossy(&self.stderr).into_owned()
+        }
+
+        /// True if the exit status of the pipeline is 0.
+        pub fn success(&self) -> bool {
+            self.exit_status.success()
         }
     }
 
@@ -843,7 +849,7 @@ mod pipeline {
                 cmds: self.cmds.clone(),
                 stdin: self.stdin.try_clone().unwrap(),
                 stdout: self.stdout.try_clone().unwrap(),
-                stdin_data: self.stdin_data.clone()
+                stdin_data: self.stdin_data.clone(),
             }
         }
     }
@@ -917,7 +923,7 @@ mod pipeline {
         /// in the pipeline.  If you need the exit statuses of all
         /// processes, use `Pipeline::popen()` and collect the exit
         /// statuses e.g. with `map(Popen::wait).collect::<Vec<_>>()`.
-        pub exit_status: ExitStatus
+        pub exit_status: ExitStatus,
     }
 
     impl CaptureOutput {
