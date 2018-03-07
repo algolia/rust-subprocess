@@ -926,5 +926,10 @@ mod pipeline {
         pub fn stdout_str(&self) -> String {
             String::from_utf8_lossy(&self.stdout).into_owned()
         }
+
+        /// True if the exit status of the pipeline is 0.
+        pub fn success(&self) -> bool {
+            self.exit_status.success()
+        }
     }
 }
